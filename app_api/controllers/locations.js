@@ -108,9 +108,110 @@ module.exports.locationsReadOne = function(req,res){
 	}
 };
 
-module.exports.locationsUpdateOne = function(req,res){}
+// PUT update to existing location
+module.exports.locationsUpdateOne = function(req,res){
+	if (!req.params.locationid) {
+		sendJsonResponse(res,404, {
+			"message" : "Not found, locationid is required"
+		});
+		return;
+	}
+	
+	Loc
+		.findById(req.params.locationid)
+		.select('-reviews -rating')
+		.exec(
+			function(err, location){
+			if (!location){
+				console.log(err)
+				sendJsonResponse(res, 404, {
+					"message" : "locationid not found"
+				});
+				return;
+			} else if (err){
+				sendJsonResponse(res, 404, err);
+				return;
+			}
+			// update returned location object
 
-module.exports.locationsDeleteOne = function(req,res){}
+		/*
+			for (key in req.body){
+				switch(key) {
+					case "facilities":
+						location[key] = req.body[key].split(',');
+						break;
+					case "lng":
+						if (req.body.lat) {
+							location.coords = [parseFloat(req.body.lng), parseFloat(req.body.lat)];
+						};
+						break;
+					case "openTimes":
+						for (var i = 0; i < req.body.openTimes.length; i++) {
+							location.openTimes.push({
+								days: req.body.
+							})
+						}
+					case "lat":
+						break;
+					default:
+						location[key] = req.body[key];
+						break;
+				}
+				if (key === "facilities" && req.body["facilities"]) {
+					
+				};
+
+				if (key ==)
+			}
+		*/
+			
+			location.name = req.body.name;
+			location.address = req.body.address;
+			location.facilities = req.body.facilities.split(",")
+			location.coords = [parseFloat(req.body.lng), parseFloat(req.body.lat)];
+			
+			// openTimes should take some prosesing
+			location.openTimes = [{
+				days: req.body.days1,
+				opening: req.body.opening1,
+				closing: req.body.closing1,
+				closed: req.body.closed1
+			}, {
+				days: req.body.days2,
+				opening: req.body.opening2,
+				closing: req.body.closing2,
+				closed: req.body.closed2}];
+			// save updates
+			location.save(function(err, location){
+				if (err) {
+					sendJsonResponse(res, 404, err)
+				} else {
+					sendJsonResponse(res, 200, location);
+				}
+			});
+
+			}
+	);
+}
+
+module.exports.locationsDeleteOne = function(req,res){
+	var locationid = req.params.locationid;
+	if (locationid) {
+		Loc
+			.findByIdAndRemove(locationid)
+			.exec(function(err, location){
+				if (err){
+					sendJsonResponse(res, 404, err);
+				} else {
+					sendJsonResponse(res, 204, null);
+				}
+			});
+	} else {
+		sendJSonResponse(res, 404, {
+			"message" : "locationid required"
+		});
+	}
+}
 
 
 /*

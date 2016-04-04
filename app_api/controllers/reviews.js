@@ -8,66 +8,11 @@ var sendJsonResponse = function(res, status, content) {
 };
 
 
-/* GET one review, based on locationid and reviewid */
-module.exports.reviewsReadOne = function(req,res){
-	// pre-check for valid ids
-	if (req.params && req.params.locationid && req.params.reviewid) {
-		Loc
-			// find locationid document, from which select name review 
-			.findById(req.params.locationid)
-			.select('name reviews')
-			.exec(
-				function(err, location) { // returns the type of model searched
-					var response, review;
-					if (!location) {
-						sendJsonResponse(res, 404, {
-							"message" : "locationid not found"
-						});
-						return;
-					} else if (err) {
-						sendJsonResponse(res, 404, err);
-						return;
-				} // !location 404s end
-				
-				if (location.reviews && location.reviews.length > 0) {
-					// mongoose sub-document id method
-					// review2 = location.reviews.find({id: req.params.reviewid});
-					review = location.reviews.id(req.params.reviewid);
-					
-					if (!review) {
-						sendJsonResponse(res, 404, {
-							"message" : "reviewid not found"
-						});
-					} else {
-						// construct custom response
-						response = {
-							location : {
-								name : location.name,
-								id: req.params.locationid
-							},
-							review : review
-						};
-						sendJsonResponse(res, 200, response);
-					}
-				} else {
-					sendJsonResponse(res, 404, {
-						"message" : "No reviews found"
-					});
-				}
-
-			}
-			); 
-		} else {
-			sendJsonResponse(res, 404, {
-				"message" : "no locationid and or reviewid in request"
-			});
-		}
-	}; 
-
-/* POST a new review */ 
-
-// find parent then add through callback in exec
-// doAddReview and SetAverageRating helper functions
+/* 
+POST a new review 
+find parent then add through callback in exec
+doAddReview and SetAverageRating helper functions
+*/ 
 module.exports.reviewsCreate = function(req,res){
 	var locationid = req.params.locationid;
 	if (locationid) {
@@ -127,6 +72,7 @@ var updateAverageRating = function(locationid){
 			if (!err) {
 				doSetAverageRating(location);
 			}
+// add check if no id is found?
 		})
 };
 
@@ -150,12 +96,100 @@ var doSetAverageRating = function(location){
 			}
 		});
 	}
-}
+};
 /* End POST a new review */ 
 
-module.exports.reviewsUpdateOne = function(req,res){
-	sendJsonResponse(res, 200, {"message" : "ok"});
+
+/* 
+GET, DELETE, PUT one review
+Error checking performed by doOneReviewById
+if no error perform the callback
+*/
+
+// Get one review by Id, perform callback if no error
+var doOneReviewById = function(req, res, selection, callback){
+	if (req.params && req.params.locationid && req.params.reviewid) {
+	Loc
+		// find locationid document, from which select name review 
+		.findById(req.params.locationid)
+		.select(selection)
+		.exec(
+			function(err, location) { // returns the type of model searched
+				var thisReview;
+				if (!location) {
+					sendJsonResponse(res, 404, {
+						"message" : "locationid not found"
+					});
+					return;
+				} else if (err) {
+					sendJsonResponse(res, 404, err);
+					return;
+				}
+
+			if (location.reviews && location.reviews.length > 0) {
+				thisReview = location.reviews.id(req.params.reviewid);
+				console.log(thisReview)
+				if (!thisReview) {
+					sendJsonResponse(res, 404, {
+						"message:" : "reviewid not found"
+					});
+				} else {
+					callback(res, thisReview, location);
+				}
+			}
+		});
+	} else {
+		sendJsonResponse(res, 404, {
+			"message" : "No review to delete"
+		});
+	}
 };
 
-module.exports.reviewsDeleteOne = function(req,res){}
+/* GET one review, based on locationid and reviewid */
+module.exports.reviewsReadOne = function(req, res){
+	doOneReviewById(req, res, 'name reviews', function(res, thisReview, location){
+		var response = {
+				location : {
+					name : location.name,
+					id: req.params.locationid
+				},
+				review : thisReview
+			};
+		sendJsonResponse(res, 200, response);
+		});
+};
+
+// PUT one existing review
+module.exports.reviewsUpdateOne = function(req, res){
+	doOneReviewById(req, res, 'reviews', function(res, thisReview, location){
+		thisReview.author = req.body.author;
+		thisReview.rating = req.body.rating;
+		thisReview.reviewText = req.body.reviewText;
+		location.save(function(err, location){
+			if(err) {
+				sendJsonResponse(res, 404, err);
+			} else {
+				updateAverageRating(location._id);
+				sendJsonResponse(res, 200, thisReview);
+			}
+		});
+	});
+};
+
+// DELETE one review
+module.exports.reviewsDeleteOne = function(req,res){
+	doOneReviewById(req, res, 'reviews', function(res, thisReview, location){
+		thisReview.remove()
+		location.save(function(err){
+			if (err) {
+				sendJsonResponse(res, 404, err);
+			} else {
+				updateAverageRating(location._id);
+				sendJsonResponse(res, 204, null);
+			}
+		}
+		);
+	});
+}
+
 
