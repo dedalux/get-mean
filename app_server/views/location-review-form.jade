@@ -4,9 +4,13 @@ block content
 	.row.page-header
 		.col-lg-12
 			h1= pageHeader.title
+			p
+				a(href="/locations/#{id}") Back to #{name} page
 	.row
 		.col-xs-12.col-md-10
-			form.form-horizontal(action="/location", method="get", role="form")
+			form#addReview.form-horizontal(action="", method="post", role="form", name="addReview")
+				-if (error == "val")
+					.alert.alert-danger(role="alert") All fields required, why are you so incompetent?
 				.form-group
 					label.col-xs-10.col-sm-2.control-label(for="name") Name
 					.col-xs-12.col-sm-10
@@ -26,3 +30,4 @@ block content
 						textarea#review.form-control(name="review", rows="5")
 				button.btn.btn-default.pull-right Add my review
 		.col-xs-12.col-md-4
+			

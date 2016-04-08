@@ -6,8 +6,9 @@ var ctrlOthers = require('../controllers/others');
 /* Locations pages */
 // Get the res object from controller and sends to template
 router.get('/', ctrlLocations.homelist);
-router.get('/location', ctrlLocations.locationInfo);
-router.get('/location/review/new', ctrlLocations.addReview);
+router.get('/locations/:locationid', ctrlLocations.locationInfo);
+router.get('/locations/:locationid/reviews/new', ctrlLocations.addReview);
+router.post('/locations/:locationid/reviews/new/', ctrlLocations.doAddReview)
 
 
 /* Other pages */

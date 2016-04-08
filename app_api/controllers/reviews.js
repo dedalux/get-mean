@@ -103,49 +103,11 @@ var doSetAverageRating = function(location){
 /* 
 GET, DELETE, PUT one review
 Error checking performed by doOneReviewById
-if no error perform the callback
+if no error perform the intended function in callback
 */
 
-// Get one review by Id, perform callback if no error
-var doOneReviewById = function(req, res, selection, callback){
-	if (req.params && req.params.locationid && req.params.reviewid) {
-	Loc
-		// find locationid document, from which select name review 
-		.findById(req.params.locationid)
-		.select(selection)
-		.exec(
-			function(err, location) { // returns the type of model searched
-				var thisReview;
-				if (!location) {
-					sendJsonResponse(res, 404, {
-						"message" : "locationid not found"
-					});
-					return;
-				} else if (err) {
-					sendJsonResponse(res, 404, err);
-					return;
-				}
 
-			if (location.reviews && location.reviews.length > 0) {
-				thisReview = location.reviews.id(req.params.reviewid);
-				console.log(thisReview)
-				if (!thisReview) {
-					sendJsonResponse(res, 404, {
-						"message:" : "reviewid not found"
-					});
-				} else {
-					callback(res, thisReview, location);
-				}
-			}
-		});
-	} else {
-		sendJsonResponse(res, 404, {
-			"message" : "No review to delete"
-		});
-	}
-};
-
-/* GET one review, based on locationid and reviewid */
+// GET one review
 module.exports.reviewsReadOne = function(req, res){
 	doOneReviewById(req, res, 'name reviews', function(res, thisReview, location){
 		var response = {
@@ -156,10 +118,10 @@ module.exports.reviewsReadOne = function(req, res){
 				review : thisReview
 			};
 		sendJsonResponse(res, 200, response);
-		});
+	});
 };
 
-// PUT one existing review
+// PUT to update one existing review
 module.exports.reviewsUpdateOne = function(req, res){
 	doOneReviewById(req, res, 'reviews', function(res, thisReview, location){
 		thisReview.author = req.body.author;
@@ -187,9 +149,48 @@ module.exports.reviewsDeleteOne = function(req,res){
 				updateAverageRating(location._id);
 				sendJsonResponse(res, 204, null);
 			}
-		}
-		);
+		});
 	});
 }
 
+// Get one review by Id, perform callback if no error
+var doOneReviewById = function(req, res, selection, callback){
+	if (!(req.params && req.params.locationid && req.params.reviewid)) {
+		sendJsonResponse(res, 404, {
+			"message" : "No review to delete"
+		});
+		return;
+	};
 
+	Loc
+		// find locationid document, from which select name review 
+		.findById(req.params.locationid)
+		.select(selection)
+		.exec(
+			function(err, location) { // returns the type of model searched
+				var thisReview;
+				if (!location) {
+					sendJsonResponse(res, 404, {
+						"message" : "locationid not found"
+					});
+					return;
+				} else if (err) {
+					sendJsonResponse(res, 404, err);
+					return;
+				}
+
+			if (location.reviews && location.reviews.length > 0) {
+				thisReview = location.reviews.id(req.params.reviewid);
+				console.log(thisReview)
+				if (!thisReview) {
+					sendJsonResponse(res, 404, {
+						"message:" : "reviewid not found"
+					});
+				} else {
+					// execute callback if correct review turned 
+					callback(res, thisReview, location);
+				}
+			}
+		});
+
+};

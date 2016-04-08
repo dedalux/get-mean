@@ -12,6 +12,12 @@ var sendJsonResponse = function(res, status, content) {
 module.exports.locationsListByDistance = function(req,res){
 	var lng = parseFloat(req.query.lng);
 	var lat = parseFloat(req.query.lat);
+	
+	var maxDistance = 20000; // 20000m default, else dynamically set by query
+	if (req.query.maxDistance){
+		maxDistance = parseFloat(req.query.maxDistance);
+	}
+
 	var point = {
 		type : "Point",
 		coordinates: [lng, lat]
@@ -19,7 +25,7 @@ module.exports.locationsListByDistance = function(req,res){
 	var geoOptions = {
 		spherical: true,
 		// Now Mongo 3/geoJSON takes meters
-		maxDistance: 15000, //theEarth.getRadsFromDistance(2000), // max 20 km
+		maxDistance: maxDistance,
 		num: 10
 	};
 
