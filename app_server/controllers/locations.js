@@ -4,7 +4,7 @@ var apiOptions = {
 }
 
 // Change to production base URL
-if (process.env.NODE_ENV === 'product') {
+if (process.env.NODE_ENV === 'production') {
 	apiOptions.server = "https://boiling-sea-52208.herokuapp.com"
 };
 
