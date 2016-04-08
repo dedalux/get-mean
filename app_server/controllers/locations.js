@@ -5,7 +5,7 @@ var apiOptions = {
 
 // Change to production base URL
 if (process.env.NODE_ENV === 'product') {
-	apiOptions.server = "https://boiling-sea-52208.herokuapp.com/"
+	apiOptions.server = "https://boiling-sea-52208.herokuapp.com"
 };
 
 
@@ -57,6 +57,7 @@ module.exports.homelist = function(req, res) {
 			var i, data;
 			data = body;
 			// only do the loop if Request response returns 200
+			console.log(response);
 			if (response.statusCode === 200 && data.length) {
 				for (i = 0; i<data.length; i++) {
 					data[i].distance = _formatDistance(data[i].distance);
