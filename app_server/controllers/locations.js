@@ -9,8 +9,9 @@ if (process.env.NODE_ENV === 'production') {
 };
 
 
-var renderHomepage = function(req, res, responseBody) {
+var renderHomepage = function(req, res) {
 	// Error message passed back on to homepage locations-list template
+	/*
 	var message;
 
 	if (!(responseBody instanceof Array)) {
@@ -21,22 +22,25 @@ var renderHomepage = function(req, res, responseBody) {
 			message = "No places found nearby";
 		}
 	}
+	*/
 
 	res.render('locations-list', { 
 		title:'Loc8r - Find a Place to Work with Wifi',
-		sidebar: "Looking for wifi and seat? Loc8r helps you find places to work when you are out and about. Perhaps with coffee, cake or a beer? Let Loc8r help you find the place you're looking for.",
+		sidebar: "Looking for wifi and seat? Loc8r helps you find places to work when you are out and about. Perhaps with coffee, cake or a beer? Let Loc8r help you find the place you're looking for. NOTE: Currently testing geo-location features. You may be too far from an actual café location.",
 		pageHeader: {
 			title: 'Loc8r',
 			strapline: 'Find places to work with wifi near you!'
 		},
-		locations: responseBody,
-		message: message
+		//locations: responseBody,
+		//message: message
 	});
 }
 
 
 /* GET 'home' page */
 module.exports.homelist = function(req, res) {
+	renderHomepage(req, res);
+	/*
 	var requestOptions, path;
 	// set api call path
 	path = '/api/locations';
@@ -67,6 +71,7 @@ module.exports.homelist = function(req, res) {
 			renderHomepage(req, res, data);
 		}
 	);
+	*/
 };
 
 /* GET 'Location info' page */
@@ -130,7 +135,8 @@ var renderReviewForm = function(req, res, locDetail) {
 		pageHeader: { title: 'Review ' + locDetail.name },
 		name: locDetail.name,
 		id: locDetail._id,
-		error: req.query.err
+		error: req.query.err,
+		url: req.originalUrl
 	});
 };
 

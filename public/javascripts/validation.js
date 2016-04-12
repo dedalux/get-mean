@@ -7,7 +7,7 @@ $('#addReview').submit(function(e) {
 		} else {
 			$(this).prepend('<div role="alert" class="alert alert-danger">All fields required, don\'t be so incompetent</div>')
 		}
-	return false;
+		return false;
 
 	}
 
